@@ -1,65 +1,54 @@
 <style scoped lang="less">
-    .index{
-        width: 100%;
-        position: absolute;
-        top: 0;
-        bottom: 0;
-        left: 0;
-        text-align: center;
-        h1{
-            height: 150px;
-            img{
-                height: 100%;
-            }
-        }
-        h2{
-            color: #666;
-            margin-bottom: 200px;
-            p{
-                margin: 0 0 50px;
-            }
-        }
-        .ivu-row-flex{
-            height: 100%;
-        }
-    }
+
 </style>
 <template>
    <div class="GoodsType-area">
        <div class="top-box">
             <div class="op-box">
                 <div class="list">
-                    <Button type="primary">新增</Button>
+                    <Button type="primary" @click="editFn('add','新增分类')">新增</Button>
                 </div>
            </div>
-            <div class="search-box">
-            </div>
        </div>
         
         <div class="content-box">
             <Table border ref="selection" :columns="tableCol" :data="tableData"></Table>
-            
         </div>
         <div class="page-box">
             <Page :total="100" show-total></Page>
         </div>
         <Modal
-                v-model="isEdit"
-                title="Common Modal dialog box title"
+                ref="vAddLayer"
+                v-model="vAdd.isEdit"
+                :title="vAdd.title"
+                :loading="vAdd.loading"
                 :mask-closable="false"
-                @on-ok="okFn"
-                @on-cancel="cancelFn">
-                <p>Content of dialog</p>
-                <p>Content of dialog</p>
-                <p>Content of dialog</p>
+                @on-ok="okFn('addFormData')"
+                @on-cancel="cancelFn('addFormData')">
+                <div class="layer-layout-box">
+                    <Form ref="addFormData" :model="vAdd.formData" :rules="vAdd.ruleValidate" :label-width="80">
+                        <FormItem label="分类名" prop="name">
+                            <Input v-model="vAdd.formData.name" placeholder="请输入"></Input>
+                        </FormItem>
+                        <FormItem label="排序" prop="sort">
+                            <Input v-model="vAdd.formData.sort" placeholder="请输入"></Input>
+                        </FormItem>
+                        <FormItem label="状态">
+                            <Switch v-model="vAdd.formData.status" size="large">
+                                <span slot="open">启用</span>
+                                <span slot="close">禁用</span>
+                            </Switch>
+                        </FormItem>
+                    </Form>
+                </div>
             </Modal>
    </div>
 </template>
 <script>
+    import qs from 'qs';
     export default {
         data () {
-            return {
-                goodsType:"",
+            return {                
                 tableCol: [
                     {
                         type: 'selection',
@@ -75,12 +64,13 @@
                         key: 'sort'
                     },
                     {
-                        title: '是否为酒水',
-                        key: 'isDrinks'
-                    },
-                    {
                         title: '状态',
-                        key: 'status'
+                        key: 'status',
+                        render: (h, params) => {
+                            var status = params.row.status;
+                            var str = status==1 ? "启用" :"禁用";
+                            return str;
+                        }
                     },
                     {
                         title: '操作',
@@ -98,7 +88,7 @@
                                     },
                                     on: {
                                         click: () => {
-                                            this.editFn(params.index)
+                                            this.editFn('edit','编辑商品',params.row)
                                         }
                                     }
                                 }, 'Edit'),
@@ -120,22 +110,41 @@
                     {
                         name: '热销菜品',
                         sort: "100",
-                        status: 1
+                        status: true
                     },
                     {
                         name: '炒菜系列',
                         sort: "90",
-                        status: 1
+                        status: true
                     },
                     {
                         name: '火锅系列',
                         sort: "80",
-                        status: 1
-                    }
+                        status: false
+                    },
                 ],
 
+
                 //编辑弹窗
-                isEdit:false
+                vAdd:{
+                    isEdit:false,
+                    loading:true,
+                    title:"",
+                    publicItem:{},
+                    formData: {
+                        name: '',
+                        sort: '',
+                        status: true
+                    },
+                    ruleValidate: {
+                        name: [
+                            { required: true, message: '不能为空', trigger: 'blur' }
+                        ],
+                        sort: [
+                            { required: true, message: '不能为空', trigger: 'blur' }
+                        ]
+                    }
+                }
             }
         },
         methods: {
@@ -144,25 +153,62 @@
             },
 
             //编辑
-            editFn (item){
+            editFn (type,title,item){
                 var t = this;
-                t.isEdit = true;
+                t.vAdd.title = title;
+                t.vAdd.isEdit = true;
+                t.vAdd.type = type;
+                if(t.vAdd.type=="add"){
+                    t.vAdd.formData = {
+                        name: '',
+                        sort: '',
+                        status: true
+                    }
+                }else if(t.vAdd.type=="edit"){
+                    t.vAdd.publicItem = item;
+                    t.vAdd.formData = {
+                        id: t.vAdd.publicItem.id,
+                        name: t.vAdd.publicItem.name,
+                        sort: t.vAdd.publicItem.sort,
+                        status: t.vAdd.publicItem.status
+                    }
+                }
             },
 
             //删除
             removeFn (item){
                 var t = this;
+                this.$Message.success('删除成功!');
             },
             
             //确定回调
-            okFn () {
-                this.$Message.info('Clicked ok');
+            okFn (name) {
+                var t = this;
+                this.$refs[name].validate((valid) => {
+                    if (valid) {
+                        t.vAdd.isEdit = false;
+                        this.$Message.success('验证通过!');
+                        t.saveFn();
+                    } else {
+                        this.$Message.error('验证失败!');
+                        this.$refs["vAddLayer"].buttonLoading = false;
+                    }
+                })
             },
 
             //取消回调
-            cancelFn () {
-                this.$Message.info('Clicked cancel');
-            }
+            cancelFn (name) {
+                this.$refs[name].resetFields();
+            },
+
+            //保存
+            saveFn (){
+                var t = this;
+                var data = qs.stringify(t.vAdd.formData);
+                this.$ajax.post('test', data).then(response => {
+                    
+                });
+            },
         }
     }
 </script>
