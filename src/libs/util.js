@@ -2,7 +2,7 @@ let util = {
 
 };
 util.title = function (title) {
-    title = title ? title + ' - 客来餐饮管理' : '客来餐饮管理';
+    title = title ? title + ' - 客来通' : '客来通';
     window.document.title = title;
 };
 

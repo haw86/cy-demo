@@ -15,7 +15,7 @@
             <Table border ref="selection" :columns="tableCol" :data="tableData"></Table>
         </div>
         <div class="page-box">
-            <Page :total="100" show-total></Page>
+            <Page :total="3" show-total></Page>
         </div>
         <Modal
                 ref="vAddLayer"

@@ -23,7 +23,8 @@ router.beforeEach((to, from, next) => {
     iView.LoadingBar.start();
     Util.title(to.meta.title);
     next();
-    window.fullPath = to.fullPath;
+
+    window.currentMenu = {fullPath:to.fullPath,parentName:to.meta.parentName};
 });
 
 router.afterEach((to, from, next) => {

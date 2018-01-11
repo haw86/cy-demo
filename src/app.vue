@@ -100,7 +100,7 @@
                 <div class="logo">
                     <img src="./images/logo.png" />
                 </div>
-                <Menu ref="sideMenu" theme="dark" width="auto" :class="menuitemClasses" :open-names="['2']" @on-select="onSelectFn">
+                <Menu ref="sideMenu" theme="dark" width="auto" :class="menuitemClasses" :open-names="openName" :active-name="activeName" @on-select="onSelectFn">
                     <MenuItem name="/">
                         <Icon type="home"></Icon>
                         <span>首页</span>
@@ -110,10 +110,10 @@
                             <Icon type="briefcase"></Icon>
                             商品
                         </template>
-                        <MenuItem name="/Goods">
+                        <MenuItem ref="Goods" name="/Goods">
                                 商品
                         </MenuItem>
-                        <MenuItem name="/GoodsType">
+                        <MenuItem ref="GoodsType" name="/GoodsType" p-name="2">
                                 分类
                         </MenuItem>
                     </Submenu>
@@ -122,10 +122,10 @@
                             <Icon type="person-stalker"></Icon>
                             会员
                         </template>
-                        <MenuItem name="/Member">
+                        <MenuItem ref="Member" name="/Member">
                                 会员
                         </MenuItem>
-                        <MenuItem name="/MemberGrade">
+                        <MenuItem ref="MemberGrade" name="/MemberGrade">
                                 等级
                         </MenuItem>
                     </Submenu>
@@ -147,6 +147,8 @@
     export default {
         data () {
             return {
+                openName:[],
+                activeName:"/",
                 fullHeight: document.documentElement.clientHeight,
                 isCollapsed: false
             }
@@ -188,11 +190,11 @@
                 t.fullHeight = document.documentElement.clientHeight;
             }
 
-            this.open = ["2"];
-            this.active = [window.fullPath];
-            this.$nextTick(function() {
-                this.$refs.sideMenu.updateOpened();
-                this.$refs.sideMenu.updateActiveName();
+            if(window.currentMenu.fullPath) t.activeName = window.currentMenu.fullPath;
+            if(window.currentMenu.parentName) t.openName = [window.currentMenu.parentName];
+            this.$nextTick(() => {
+                this.$refs.sideMenu.updateOpened()
+                this.$refs.sideMenu.updateActiveName()
             })
         }
     }
