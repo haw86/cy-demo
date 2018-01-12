@@ -10,7 +10,6 @@ const routers = [
         path: '/Login',
         meta: {
             title: '商品',
-            parentName:"2"
         },
         component: (resolve) => require(['./views/Login.vue'], resolve)
     },
@@ -45,6 +44,13 @@ const routers = [
             parentName:"3"
         },
         component: (resolve) => require(['./views/Member/MemberGrade.vue'], resolve)
+    },
+    {
+        path: '/DataCount',
+        meta: {
+            title: '数据统计'
+        },
+        component: (resolve) => require(['./views/DataCount/DataCount.vue'], resolve)
     }
 ];
 
